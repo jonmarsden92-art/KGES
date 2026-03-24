@@ -1,0 +1,70 @@
+// ============================================================
+// firestore.rules
+// Paste this into Firebase Console → Firestore → Rules
+// OR deploy with: firebase deploy --only firestore:rules
+// ============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------------------------------
+    // Helper functions
+    // --------------------------------------------------------
+
+    // Is the requesting user signed in?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Does the user have the admin custom claim?
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // --------------------------------------------------------
+    // Engineers collection
+    // Any signed-in user can read. Only admins can write.
+    // --------------------------------------------------------
+    match /engineers/{engineerId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // --------------------------------------------------------
+    // Jobs collection
+    // Any signed-in user can read. Only admins can write.
+    // --------------------------------------------------------
+    match /jobs/{jobId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // --------------------------------------------------------
+    // Reports metadata
+    // Any signed-in user can read and upload.
+    // Only admins can delete.
+    // --------------------------------------------------------
+    match /reports/{reportId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --------------------------------------------------------
+    // Users collection (optional — for storing display names,
+    // roles visible in UI, preferences, etc.)
+    // Users can read/write their own doc. Admins can read all.
+    // --------------------------------------------------------
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      allow read: if isAdmin();
+    }
+
+    // Deny everything else by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
