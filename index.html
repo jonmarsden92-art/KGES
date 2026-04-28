@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>KGUK Field Service • Job Dashboard & Calendar</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+      background: #f0f3f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .app-container {
+      max-width: 1400px;
+      width: 100%;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: 95vh;
+    }
+    .header {
+      padding: 1.2rem 2rem;
+      background: white;
+      border-bottom: 1px solid #e2e7ee;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .title-section h1 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      color: #0b2b4a;
+    }
+    .view-tabs {
+      display: flex;
+      gap: 0.5rem;
+      background: #f1f4f9;
+      padding: 0.3rem;
+      border-radius: 2rem;
+    }
+    .view-tab {
+      padding: 0.5rem 1.4rem;
+      border-radius: 2rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: #415a77;
+      transition: 0.2s;
+    }
+    .view-tab.active {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      color: #0a58ca;
+      font-weight: 600;
+    }
+    .main-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    /* FILTER PANEL */
+    .filter-panel {
+      width: 280px;
+      background: #f9fafc;
+      border-right: 1px solid #e6eaf0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .filter-group {
+      margin-bottom: 1.2rem;
+    }
+    .filter-group label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #4a5c6e;
+      display: block;
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.3px;
+    }
+    .filter-group select, .filter-group input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #dce2e8;
+      border-radius: 0.6rem;
+      font-size: 0.85rem;
+      background: white;
+    }
+    .filter-btn {
+      background: #0a58ca;
+      color: white;
+      border: none;
+      padding: 0.6rem;
+      border-radius: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .reset-btn {
+      background: white;
+      border: 1px solid #ccd8e8;
+      margin-top: 0.3rem;
+    }
+    /* JOB LIST */
+    .job-list-panel {
+      width: 320px;
+      background: white;
+      border-right: 1px solid #e6eaf0;
+      display: flex;
+      flex-direction: column;
+    }
+    .job-list-header {
+      padding: 1rem;
+      font-weight: 700;
+      border-bottom: 1px solid #edf0f5;
+      color: #1e3b5a;
+    }
+    .job-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem;
+    }
+    .job-card {
+      padding: 0.9rem;
+      margin: 0.4rem 0;
+      background: #ffffff;
+      border: 1px solid #e9edf4;
+      border-radius: 1rem;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .job-card:hover, .job-card.selected {
+      background: #eef3ff;
+      border-color: #9bb6da;
+    }
+    .job-card .job-title {
+      font-weight: 700;
+      color: #132e48;
+    }
+    .job-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      margin-top: 0.4rem;
+    }
+    .meta-tag {
+      background: #eef2f6;
+      padding: 0.2rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #2c4b6e;
+    }
+    /* DETAIL / EDIT PANEL */
+    .detail-panel {
+      flex: 1;
+      background: #ffffff;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+    }
+    .form-field label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #4a5c6e;
+      margin-bottom: 0.2rem;
+    }
+    .form-field input, .form-field select, .form-field textarea {
+      padding: 0.55rem;
+      border: 1px solid #dce2e8;
+      border-radius: 0.6rem;
+      font-size: 0.9rem;
+    }
+    .full-width {
+      grid-column: span 2;
+    }
+    .action-buttons {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 0.8rem;
+      justify-content: flex-end;
+    }
+    .btn-primary {
+      background: #0a58ca;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.8rem;
+      border-radius: 2rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      background: white;
+      border: 1px solid #ccd8e8;
+      color: #1f3b5c;
+    }
+    .resource-calendar-view {
+      display: none;
+    }
+    .calendar-active .resource-calendar-view {
+      display: flex;
+      flex: 1;
+    }
+    .calendar-active .job-list-panel, .calendar-active .detail-panel {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <div class="header">
+    <div class="title-section">
+      <h1>📋 KGUK Field Service · Job & Resource Manager</h1>
+    </div>
+    <div class="view-tabs">
+      <div class="view-tab active" data-view="jobs">📋 Jobs</div>
+      <div class="view-tab" data-view="calendar">📅 Resource Calendar</div>
+    </div>
+  </div>
+
+  <div class="main-layout" id="mainLayout">
+    <!-- Filter Panel -->
+    <div class="filter-panel" id="filterPanel">
+      <div style="font-weight:700; margin-bottom:0.8rem; color:#0b2b4a;">🔍 Filters</div>
+      <div class="filter-group">
+        <label>Keyword Search</label>
+        <input type="text" id="filterKeyword" placeholder="Reference, ward, address...">
+      </div>
+      <div class="filter-group">
+        <label>Job Status</label>
+        <select id="filterJobStatus"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Regional Area</label>
+        <select id="filterRegion"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Project Contact</label>
+        <select id="filterContact"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Job Urgency</label>
+        <select id="filterUrgency"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>After Care Job?</label>
+        <select id="filterAfterCare"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Door/Part Status</label>
+        <select id="filterDoorStatus"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Ward Status</label>
+        <select id="filterWardStatus"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>Type of Work</label>
+        <select id="filterWorkType"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>BM Trada Approved</label>
+        <select id="filterBMTrada"><option value="">All</option></select>
+      </div>
+      <div class="filter-group">
+        <label>No. of Site Operatives</label>
+        <input type="number" id="filterOperatives" placeholder="e.g., 2">
+      </div>
+      <div class="filter-group">
+        <label>All Work Complete?</label>
+        <select id="filterComplete"><option value="">All</option></select>
+      </div>
+      <button class="filter-btn" id="applyFiltersBtn">Apply Filters</button>
+      <button class="filter-btn reset-btn" id="resetFiltersBtn">Reset All</button>
+    </div>
+
+    <!-- Job List Panel -->
+    <div class="job-list-panel" id="jobListPanel">
+      <div class="job-list-header">📌 Jobs (<span id="jobCount">0</span>)</div>
+      <div class="job-list" id="jobListContainer"></div>
+      <button id="addJobBtn" style="margin:1rem; padding:0.6rem; border-radius:2rem; background:#e9f0ff; border:1px dashed #7b9bcb; font-weight:600; cursor:pointer;">+ Add New Job</button>
+    </div>
+
+    <!-- Detail / Edit Panel -->
+    <div class="detail-panel" id="detailPanel">
+      <div id="emptyState" style="color:#5f6c7a; text-align:center; padding:3rem;">Select a job to view/edit details</div>
+      <div id="jobForm" style="display:none;">
+        <h3 style="margin-bottom:1rem;">✏️ Edit Job Details</h3>
+        <div class="form-grid">
+          <div class="form-field"><label>KGUK Reference</label><input id="refNumber" placeholder="e.g., 7578"></div>
+          <div class="form-field"><label>KG Project Number</label><input id="projectNumber"></div>
+          <div class="form-field"><label>Job Status</label><select id="jobStatus"></select></div>
+          <div class="form-field"><label>Regional Area</label><select id="regionArea"></select></div>
+          <div class="form-field"><label>Project Contact</label><input id="projectContact"></div>
+          <div class="form-field"><label>Job Urgency</label><select id="jobUrgency"></select></div>
+          <div class="form-field"><label>After Care Job?</label><select id="afterCare"></select></div>
+          <div class="form-field"><label>D.Note / Goods Out</label><input id="dNote"></div>
+          <div class="form-field"><label>Door/Part Status</label><select id="doorStatus"></select></div>
+          <div class="form-field"><label>Ward Status</label><select id="wardStatus"></select></div>
+          <div class="form-field"><label>Type of Work</label><input id="workType" placeholder="Installation, Doors"></div>
+          <div class="form-field"><label>BM Trada Approved</label><input id="bmTrada"></div>
+          <div class="form-field"><label>No. of Site Ops</label><input type="number" id="siteOperatives" min="1"></div>
+          <div class="form-field"><label>Time Est (Days)</label><input id="timeEst"></div>
+          <div class="form-field"><label>No. of Doors</label><input type="number" id="numDoors"></div>
+          <div class="form-field full-width"><label>Site Address</label><input id="siteAddress"></div>
+          <div class="form-field"><label>Site Contact</label><input id="siteContact"></div>
+          <div class="form-field"><label>Ward & Room Info</label><input id="wardRoom"></div>
+          <div class="form-field full-width"><label>Job Spec / Notes</label><textarea id="jobSpec" rows="3"></textarea></div>
+          <div class="form-field"><label>All Work Complete?</label><select id="allComplete"></select></div>
+          <div class="form-field"><label>Assigned Technician</label><select id="assignedTech"></select></div>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-secondary" id="cancelEditBtn">Cancel</button>
+          <button class="btn-primary" id="saveJobBtn">Save Job</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resource Calendar View (hidden by default) -->
+    <div class="resource-calendar-view" id="calendarView" style="display:none; flex:1; background:#f4f6f9; padding:1rem;">
+      <p style="padding:2rem;">📅 Calendar view would integrate here (as previously built). Switch back to Jobs view.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // ---------- JOB DATA STORE ----------
+    let jobs = [
+      {
+        id: 'j1',
+        refNumber: '7578',
+        projectNumber: '7578',
+        jobStatus: 'Book Installer and email PM+RPC',
+        regionArea: 'R3 (Tom, Carlo, AC) North England, Highlands, ROI, NI)',
+        projectContact: 'R3 Carlo 07526 564 329, RPC Mel 07907 725 478',
+        jobUrgency: 'MEDIUM (2-3 weeks)',
+        afterCare: 'NO',
+        dNote: 'TO BE ACTIONED',
+        doorStatus: 'Ready to be delivered same day',
+        wardStatus: 'LIVE WARD',
+        workType: 'Installation, Doors',
+        bmTrada: 'Tom Bales (3051)',
+        siteOperatives: 2,
+        timeEst: '30 DAYS',
+        numDoors: 30,
+        siteAddress: 'Dewsbury and District Hospital Halifax Rd, Dewsbury WF13 4HS',
+        siteContact: 'TBC',
+        wardRoom: 'Ward 19',
+        jobSpec: 'Please attend Ward 19 to check all doors, ensuring LEDs function...',
+        allComplete: 'RVN, Unidentified Issue Reported',
+        assignedTech: ''
+      }
+    ];
+
+    // Predefined options for filters/dropdowns
+    const statusOptions = ['Book Installer and email PM+RPC','Production / Parts due date tbc','Completed','On Hold'];
+    const regionOptions = ['R3 (Tom, Carlo, AC) North England','R2 Midlands','R1 South East','London'];
+    const contactOptions = ['R3 Carlo','RPC Mel','Tom Bales','Alex Kent'];
+    const urgencyOptions = ['LOW (4+ weeks)','MEDIUM (2-3 weeks)','HIGH (within 1 week)','CRITICAL'];
+    const afterCareOptions = ['YES','NO'];
+    const doorStatusOptions = ['Ready to be delivered','In Production','Delivered','On Site'];
+    const wardStatusOptions = ['LIVE WARD','VACANT','RESTRICTED'];
+    const completeOptions = ['YES','NO','RVN, Unidentified Issue Reported'];
+
+    let currentJobId = null;
+    let activeFilters = {};
+
+    // Populate filter dropdowns
+    function populateSelect(selectId, options) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      select.innerHTML = '<option value="">All</option>' + options.map(o => `<option value="${o}">${o}</option>`).join('');
+    }
+
+    function initFilters() {
+      populateSelect('filterJobStatus', statusOptions);
+      populateSelect('filterRegion', regionOptions);
+      populateSelect('filterContact', contactOptions);
+      populateSelect('filterUrgency', urgencyOptions);
+      populateSelect('filterAfterCare', afterCareOptions);
+      populateSelect('filterDoorStatus', doorStatusOptions);
+      populateSelect('filterWardStatus', wardStatusOptions);
+      populateSelect('filterWorkType', ['Installation, Doors','Maintenance','Snagging']);
+      populateSelect('filterBMTrada', ['Tom Bales (3051)','Other']);
+      populateSelect('filterComplete', completeOptions);
+      // Form dropdowns
+      populateSelect('jobStatus', statusOptions);
+      populateSelect('regionArea', regionOptions);
+      populateSelect('jobUrgency', urgencyOptions);
+      populateSelect('afterCare', afterCareOptions);
+      populateSelect('doorStatus', doorStatusOptions);
+      populateSelect('wardStatus', wardStatusOptions);
+      populateSelect('allComplete', completeOptions);
+    }
+
+    function renderJobList() {
+      const container = document.getElementById('jobListContainer');
+      const filtered = filterJobs(jobs);
+      document.getElementById('jobCount').textContent = filtered.length;
+      container.innerHTML = filtered.map(job => {
+        const selectedClass = job.id === currentJobId ? 'selected' : '';
+        return `<div class="job-card ${selectedClass}" data-id="${job.id}">
+                  <div class="job-title">🔹 ${job.refNumber} - ${job.wardRoom || 'Job'}</div>
+                  <div class="job-meta">
+                    <span class="meta-tag">${job.jobStatus}</span>
+                    <span class="meta-tag">${job.regionArea?.substring(0,15)}</span>
+                    <span class="meta-tag">${job.jobUrgency}</span>
+                  </div>
+                </div>`;
+      }).join('');
+
+      document.querySelectorAll('.job-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          const id = e.currentTarget.dataset.id;
+          selectJob(id);
+        });
+      });
+    }
+
+    function filterJobs(jobArray) {
+      return jobArray.filter(job => {
+        const kw = (document.getElementById('filterKeyword')?.value || '').toLowerCase();
+        if (kw && !JSON.stringify(job).toLowerCase().includes(kw)) return false;
+        for (let [filterId, field] of [
+          ['filterJobStatus','jobStatus'],['filterRegion','regionArea'],
+          ['filterContact','projectContact'],['filterUrgency','jobUrgency'],
+          ['filterAfterCare','afterCare'],['filterDoorStatus','doorStatus'],
+          ['filterWardStatus','wardStatus'],['filterWorkType','workType'],
+          ['filterBMTrada','bmTrada'],['filterComplete','allComplete']
+        ]) {
+          const val = document.getElementById(filterId)?.value;
+          if (val && job[field] !== val) return false;
+        }
+        const opsFilter = document.getElementById('filterOperatives')?.value;
+        if (opsFilter && job.siteOperatives != opsFilter) return false;
+        return true;
+      });
+    }
+
+    function selectJob(id) {
+      currentJobId = id;
+      const job = jobs.find(j => j.id === id);
+      if (!job) return;
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('jobForm').style.display = 'block';
+      // Populate form
+      document.getElementById('refNumber').value = job.refNumber || '';
+      document.getElementById('projectNumber').value = job.projectNumber || '';
+      document.getElementById('jobStatus').value = job.jobStatus || '';
+      document.getElementById('regionArea').value = job.regionArea || '';
+      document.getElementById('projectContact').value = job.projectContact || '';
+      document.getElementById('jobUrgency').value = job.jobUrgency || '';
+      document.getElementById('afterCare').value = job.afterCare || '';
+      document.getElementById('dNote').value = job.dNote || '';
+      document.getElementById('doorStatus').value = job.doorStatus || '';
+      document.getElementById('wardStatus').value = job.wardStatus || '';
+      document.getElementById('workType').value = job.workType || '';
+      document.getElementById('bmTrada').value = job.bmTrada || '';
+      document.getElementById('siteOperatives').value = job.siteOperatives || '';
+      document.getElementById('timeEst').value = job.timeEst || '';
+      document.getElementById('numDoors').value = job.numDoors || '';
+      document.getElementById('siteAddress').value = job.siteAddress || '';
+      document.getElementById('siteContact').value = job.siteContact || '';
+      document.getElementById('wardRoom').value = job.wardRoom || '';
+      document.getElementById('jobSpec').value = job.jobSpec || '';
+      document.getElementById('allComplete').value = job.allComplete || '';
+      document.getElementById('assignedTech').value = job.assignedTech || '';
+      renderJobList();
+    }
+
+    function saveCurrentJob() {
+      if (!currentJobId) return;
+      const job = jobs.find(j => j.id === currentJobId);
+      if (!job) return;
+      job.refNumber = document.getElementById('refNumber').value;
+      job.projectNumber = document.getElementById('projectNumber').value;
+      job.jobStatus = document.getElementById('jobStatus').value;
+      job.regionArea = document.getElementById('regionArea').value;
+      job.projectContact = document.getElementById('projectContact').value;
+      job.jobUrgency = document.getElementById('jobUrgency').value;
+      job.afterCare = document.getElementById('afterCare').value;
+      job.dNote = document.getElementById('dNote').value;
+      job.doorStatus = document.getElementById('doorStatus').value;
+      job.wardStatus = document.getElementById('wardStatus').value;
+      job.workType = document.getElementById('workType').value;
+      job.bmTrada = document.getElementById('bmTrada').value;
+      job.siteOperatives = parseInt(document.getElementById('siteOperatives').value) || 0;
+      job.timeEst = document.getElementById('timeEst').value;
+      job.numDoors = parseInt(document.getElementById('numDoors').value) || 0;
+      job.siteAddress = document.getElementById('siteAddress').value;
+      job.siteContact = document.getElementById('siteContact').value;
+      job.wardRoom = document.getElementById('wardRoom').value;
+      job.jobSpec = document.getElementById('jobSpec').value;
+      job.allComplete = document.getElementById('allComplete').value;
+      job.assignedTech = document.getElementById('assignedTech').value;
+      renderJobList();
+      alert('Job saved successfully.');
+    }
+
+    function addNewJob() {
+      const newId = 'j' + Date.now();
+      jobs.push({
+        id: newId,
+        refNumber: '', projectNumber: '', jobStatus: '', regionArea: '',
+        projectContact: '', jobUrgency: '', afterCare: 'NO', dNote: '',
+        doorStatus: '', wardStatus: '', workType: '', bmTrada: '',
+        siteOperatives: 1, timeEst: '', numDoors: 0, siteAddress: '',
+        siteContact: '', wardRoom: '', jobSpec: '', allComplete: '', assignedTech: ''
+      });
+      currentJobId = newId;
+      renderJobList();
+      selectJob(newId);
+    }
+
+    // View toggle
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+        e.target.classList.add('active');
+        const view = e.target.dataset.view;
+        if (view === 'calendar') {
+          document.getElementById('jobListPanel').style.display = 'none';
+          document.getElementById('detailPanel').style.display = 'none';
+          document.getElementById('filterPanel').style.display = 'none';
+          document.getElementById('calendarView').style.display = 'block';
+        } else {
+          document.getElementById('jobListPanel').style.display = 'flex';
+          document.getElementById('detailPanel').style.display = 'flex';
+          document.getElementById('filterPanel').style.display = 'flex';
+          document.getElementById('calendarView').style.display = 'none';
+        }
+      });
+    });
+
+    document.getElementById('applyFiltersBtn').addEventListener('click', renderJobList);
+    document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+      document.querySelectorAll('.filter-panel select, .filter-panel input').forEach(el => el.value = '');
+      renderJobList();
+    });
+    document.getElementById('saveJobBtn').addEventListener('click', saveCurrentJob);
+    document.getElementById('cancelEditBtn').addEventListener('click', () => {
+      if (currentJobId) selectJob(currentJobId);
+    });
+    document.getElementById('addJobBtn').addEventListener('click', addNewJob);
+
+    // Initialize
+    initFilters();
+    renderJobList();
+    if (jobs.length > 0) selectJob(jobs[0].id);
+  })();
+</script>
+</body>
+</html>
