@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
-  <title>KGUK Field Service • Job & Resource Manager</title>
+  <title>KGUK Field Service • Full App</title>
   <style>
     * {
       margin: 0;
@@ -30,7 +30,6 @@
       flex-direction: column;
       max-height: 95vh;
     }
-    /* Header */
     .header {
       padding: 1.2rem 2rem;
       background: white;
@@ -73,7 +72,6 @@
       color: #0a58ca;
       font-weight: 600;
     }
-    /* Main Layout */
     .main-layout {
       display: flex;
       flex: 1;
@@ -213,7 +211,7 @@
       background: #e0e9ff;
       border-color: #4a7bc0;
     }
-    /* DETAIL / EDIT PANEL */
+    /* DETAIL PANEL */
     .detail-panel {
       flex: 1;
       background: #ffffff;
@@ -258,15 +256,6 @@
     .full-width {
       grid-column: span 2;
     }
-    .section-title {
-      grid-column: span 2;
-      font-weight: 700;
-      color: #0a2540;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      border-bottom: 1px solid #e6eaf0;
-      padding-bottom: 0.3rem;
-    }
     .action-buttons {
       margin-top: 1.8rem;
       display: flex;
@@ -293,15 +282,103 @@
       cursor: pointer;
       font-size: 0.9rem;
     }
-    /* Calendar placeholder */
-    .calendar-placeholder {
+    /* RESOURCE CALENDAR */
+    .resource-calendar-view {
       display: none;
       flex: 1;
       background: #f4f6f9;
-      justify-content: center;
+      flex-direction: column;
+    }
+    .calendar-grid {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .resource-column {
+      min-width: 240px;
+      max-width: 280px;
+      background: white;
+      border-right: 1px solid #e6eaf0;
+      display: flex;
+      flex-direction: column;
+    }
+    .resource-header {
+      padding: 1rem 1rem;
+      background: #f8faff;
+      border-bottom: 1px solid #dce2e8;
+      font-weight: 600;
+      color: #1f3a57;
+      font-size: 0.9rem;
+    }
+    .resource-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0;
+    }
+    .tech-item, .job-item {
+      padding: 0.7rem 1rem;
+      margin: 0.2rem 0.5rem;
+      border-radius: 0.7rem;
+      font-size: 0.85rem;
+      display: flex;
       align-items: center;
-      color: #3b4c5e;
-      font-size: 1rem;
+      justify-content: space-between;
+      background: #ffffff;
+      border: 1px solid #edf0f5;
+      cursor: pointer;
+    }
+    .tech-item:hover, .job-item:hover {
+      background: #f0f4ff;
+    }
+    .badge {
+      padding: 0.2rem 0.7rem;
+      border-radius: 1rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    .status-allocated { background: #d4e2fc; color: #0e2e52; }
+    .status-free { background: #e2f0e6; color: #1b4b2c; }
+    .schedule-panel {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+    }
+    .day-tabs {
+      display: flex;
+      border-bottom: 1px solid #e2e7ee;
+    }
+    .day-tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.8rem 0.5rem;
+      font-weight: 600;
+      color: #4c5b6b;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+    }
+    .day-tab.active {
+      color: #0a58ca;
+      border-bottom: 3px solid #0a58ca;
+    }
+    .schedule-area {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    .slot-card {
+      background: #f7f9fd;
+      border-radius: 0.8rem;
+      padding: 0.8rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid #dee5ef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .holiday-row {
+      background: #fff4e5;
+      border-left: 4px solid #f0a54a;
     }
   </style>
 </head>
@@ -322,92 +399,32 @@
     <!-- FILTER PANEL -->
     <div class="filter-panel" id="filterPanel">
       <h3>🔍 Filters</h3>
-      <div class="filter-group">
-        <label>Keyword Search</label>
-        <input type="text" id="filterKeyword" placeholder="Reference, ward, address...">
-      </div>
-      <div class="filter-group">
-        <label>Job Status</label>
-        <select id="filterJobStatus"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Regional Area</label>
-        <select id="filterRegion"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Project Contact</label>
-        <select id="filterContact"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Job Urgency</label>
-        <select id="filterUrgency"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>After Care Job?</label>
-        <select id="filterAfterCare"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>D.Note / Goods Out</label>
-        <select id="filterDNote"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Door/Part Status</label>
-        <select id="filterDoorStatus"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Ward Status</label>
-        <select id="filterWardStatus"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Type of Work</label>
-        <select id="filterWorkType"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>BM Trada Approved</label>
-        <select id="filterBMTrada"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>No. of Site Operatives</label>
-        <input type="number" id="filterOperatives" placeholder="e.g., 2">
-      </div>
-      <div class="filter-group">
-        <label>Type of Fault</label>
-        <select id="filterFaultType"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Location of Fault</label>
-        <input type="text" id="filterFaultLocation" placeholder="Ward, room...">
-      </div>
-      <div class="filter-group">
-        <label>All Work Complete?</label>
-        <select id="filterComplete"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>After Care Invoice?</label>
-        <select id="filterACInvoice"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>AC Revisit Booked?</label>
-        <select id="filterACRevisit"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Part Used?</label>
-        <select id="filterPartUsed"><option value="">All</option></select>
-      </div>
-      <div class="filter-group">
-        <label>Van Stock Used?</label>
-        <select id="filterVanStock"><option value="">All</option></select>
-      </div>
+      <div class="filter-group"><label>Keyword Search</label><input type="text" id="filterKeyword" placeholder="Reference, ward, address..."></div>
+      <div class="filter-group"><label>Job Status</label><select id="filterJobStatus"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Regional Area</label><select id="filterRegion"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Project Contact</label><select id="filterContact"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Job Urgency</label><select id="filterUrgency"><option value="">All</option></select></div>
+      <div class="filter-group"><label>After Care Job?</label><select id="filterAfterCare"><option value="">All</option></select></div>
+      <div class="filter-group"><label>D.Note / Goods Out</label><select id="filterDNote"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Door/Part Status</label><select id="filterDoorStatus"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Ward Status</label><select id="filterWardStatus"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Type of Work</label><select id="filterWorkType"><option value="">All</option></select></div>
+      <div class="filter-group"><label>BM Trada Approved</label><select id="filterBMTrada"><option value="">All</option></select></div>
+      <div class="filter-group"><label>No. of Site Operatives</label><input type="number" id="filterOperatives" placeholder="e.g., 2"></div>
+      <div class="filter-group"><label>Type of Fault</label><select id="filterFaultType"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Location of Fault</label><input type="text" id="filterFaultLocation" placeholder="Ward, room..."></div>
+      <div class="filter-group"><label>All Work Complete?</label><select id="filterComplete"><option value="">All</option></select></div>
+      <div class="filter-group"><label>After Care Invoice?</label><select id="filterACInvoice"><option value="">All</option></select></div>
+      <div class="filter-group"><label>AC Revisit Booked?</label><select id="filterACRevisit"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Part Used?</label><select id="filterPartUsed"><option value="">All</option></select></div>
+      <div class="filter-group"><label>Van Stock Used?</label><select id="filterVanStock"><option value="">All</option></select></div>
       <button class="filter-btn" id="applyFiltersBtn">Apply Filters</button>
       <button class="filter-btn reset-btn" id="resetFiltersBtn">Reset All</button>
     </div>
 
     <!-- JOB LIST -->
     <div class="job-list-panel" id="jobListPanel">
-      <div class="job-list-header">
-        <span>📌 Jobs</span>
-        <span id="jobCount">0</span>
-      </div>
+      <div class="job-list-header"><span>📌 Jobs</span><span id="jobCount">0</span></div>
       <div class="job-list" id="jobListContainer"></div>
       <div class="add-job-btn" id="addJobBtn">+ Add New Job</div>
     </div>
@@ -418,7 +435,7 @@
       <div id="jobForm" style="display:none;">
         <h3 style="margin-bottom:1.2rem; color:#0a2540;">✏️ Job Details</h3>
         <div class="form-grid">
-          <div class="form-field"><label>KGUK Reference</label><input id="refNumber" placeholder="e.g., 7578"></div>
+          <div class="form-field"><label>KGUK Reference</label><input id="refNumber"></div>
           <div class="form-field"><label>KG Project Number</label><input id="projectNumber"></div>
           <div class="form-field"><label>Job Status</label><select id="jobStatus"></select></div>
           <div class="form-field"><label>Regional Area</label><select id="regionArea"></select></div>
@@ -428,16 +445,16 @@
           <div class="form-field"><label>D.Note / Goods Out</label><input id="dNote"></div>
           <div class="form-field"><label>Door/Part Status</label><select id="doorStatus"></select></div>
           <div class="form-field"><label>Ward Status</label><select id="wardStatus"></select></div>
-          <div class="form-field"><label>Type of Work</label><input id="workType" placeholder="Installation, Doors"></div>
+          <div class="form-field"><label>Type of Work</label><input id="workType"></div>
           <div class="form-field"><label>BM Trada Approved</label><input id="bmTrada"></div>
-          <div class="form-field"><label>No. of Site Ops</label><input type="number" id="siteOperatives" min="1"></div>
+          <div class="form-field"><label>No. of Site Ops</label><input type="number" id="siteOperatives"></div>
           <div class="form-field"><label>Time Est (Days)</label><input id="timeEst"></div>
           <div class="form-field"><label>No. of Doors</label><input type="number" id="numDoors"></div>
           <div class="form-field full-width"><label>Site Address</label><input id="siteAddress"></div>
           <div class="form-field"><label>Site Contact</label><input id="siteContact"></div>
           <div class="form-field"><label>Ward & Room Info</label><input id="wardRoom"></div>
           <div class="form-field full-width"><label>Job Spec / Notes</label><textarea id="jobSpec" rows="3"></textarea></div>
-          <div class="form-field"><label>Type of Fault</label><input id="faultType" placeholder="N/A"></div>
+          <div class="form-field"><label>Type of Fault</label><input id="faultType"></div>
           <div class="form-field"><label>Location of Fault</label><input id="faultLocation"></div>
           <div class="form-field"><label>All Work Complete?</label><select id="allComplete"></select></div>
           <div class="form-field"><label>After Care Invoice?</label><select id="acInvoice"></select></div>
@@ -453,335 +470,242 @@
       </div>
     </div>
 
-    <!-- CALENDAR PLACEHOLDER -->
-    <div class="calendar-placeholder" id="calendarView">
-      <div style="text-align:center;">
-        <p style="font-size:1.5rem; margin-bottom:0.5rem;">📅</p>
-        <p>Resource Calendar view will integrate here.</p>
-        <p style="font-size:0.8rem; color:#5f6c7a;">Switch back to Jobs view to manage details.</p>
+    <!-- RESOURCE CALENDAR VIEW -->
+    <div class="resource-calendar-view" id="calendarView">
+      <div class="calendar-grid">
+        <div class="resource-column">
+          <div class="resource-header">👷 Field Technicians</div>
+          <div class="resource-list" id="technicianList"></div>
+        </div>
+        <div class="resource-column">
+          <div class="resource-header">📋 Unallocated & Jobs</div>
+          <div class="resource-list" id="calendarJobList"></div>
+        </div>
+        <div class="schedule-panel">
+          <div class="day-tabs" id="dayTabs"></div>
+          <div class="schedule-area" id="scheduleContent"><p style="color:#5f6c7a; padding:1rem;">Select a technician or job to view schedule</p></div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  (function() {
-    // ---------- DATA STORE ----------
-    let jobs = [
-      {
-        id: 'j1',
-        refNumber: '7578',
-        projectNumber: '7578',
-        jobStatus: 'Book Installer and email PM+RPC',
-        regionArea: 'R3 (Tom, Carlo, AC) North England, Highlands, ROI, NI)',
-        projectContact: 'R3 Carlo 07526 564 329, RPC Mel 07907 725 478',
-        jobUrgency: 'MEDIUM (2-3 weeks)',
-        afterCare: 'NO',
-        dNote: 'TO BE ACTIONED',
-        doorStatus: 'Ready to be delivered same day',
-        wardStatus: 'LIVE WARD',
-        workType: 'Installation, Doors',
-        bmTrada: 'Tom Bales (3051)',
-        siteOperatives: 2,
-        timeEst: '30 DAYS',
-        numDoors: 30,
-        siteAddress: 'Dewsbury and District Hospital Halifax Rd, Dewsbury WF13 4HS',
-        siteContact: 'TBC',
-        wardRoom: 'Ward 19',
-        jobSpec: 'Please attend Ward 19 to check all doors, ensuring LEDs function and alarms connected.',
-        faultType: 'N/A',
-        faultLocation: '',
-        allComplete: 'RVN, Unidentified Issue Reported',
-        acInvoice: 'NO',
-        acRevisit: 'NO',
-        partUsed: 'NO',
-        vanStock: 'NO',
-        assignedTech: ''
-      }
-    ];
-
-    // Predefined options
-    const statusOptions = [
-      'Book Installer and email PM+RPC',
-      'Production / Parts due date tbc',
-      'Completed',
-      'On Hold',
-      'In Progress'
-    ];
-    const regionOptions = [
-      'R3 (Tom, Carlo, AC) North England, Highlands, ROI, NI)',
-      'R2 Midlands',
-      'R1 South East',
-      'London',
-      'South West'
-    ];
-    const contactOptions = ['R3 Carlo', 'RPC Mel', 'Tom Bales', 'Alex Kent', 'Andy Jones'];
-    const urgencyOptions = ['LOW (4+ weeks)', 'MEDIUM (2-3 weeks)', 'HIGH (within 1 week)', 'CRITICAL'];
-    const afterCareOptions = ['YES', 'NO'];
-    const doorStatusOptions = ['Ready to be delivered same day', 'In Production', 'Delivered', 'On Site', 'Pending'];
-    const wardStatusOptions = ['LIVE WARD', 'VACANT', 'RESTRICTED', 'ISOLATED'];
-    const workTypeOptions = ['Installation, Doors', 'Maintenance', 'Snagging', 'Repair', 'Inspection'];
-    const bmTradaOptions = ['Tom Bales (3051)', 'Other'];
-    const completeOptions = ['YES', 'NO', 'RVN, Unidentified Issue Reported', 'Partial'];
-    const yesNoOptions = ['YES', 'NO'];
-    const faultTypeOptions = ['N/A', 'Mechanical', 'Electrical', 'Alignment', 'Lock', 'Closer'];
-    const technicianOptions = ['Alex Kent', 'Andy Jones', 'Lee Blakeston', 'Tom Clark', 'Michael Nicholson'];
-
-    let currentJobId = null;
-
-    // Helper to populate select dropdowns
-    function populateSelect(selectId, options) {
-      const select = document.getElementById(selectId);
-      if (!select) return;
-      select.innerHTML = '<option value="">All</option>' + options.map(o => `<option value="${o}">${o}</option>`).join('');
+(function() {
+  // ========== DATA STORES ==========
+  let jobs = [
+    {
+      id: 'j1', refNumber: '7578', projectNumber: '7578',
+      jobStatus: 'Book Installer and email PM+RPC',
+      regionArea: 'R3 (Tom, Carlo, AC) North England, Highlands, ROI, NI)',
+      projectContact: 'R3 Carlo 07526 564 329, RPC Mel 07907 725 478',
+      jobUrgency: 'MEDIUM (2-3 weeks)', afterCare: 'NO',
+      dNote: 'TO BE ACTIONED', doorStatus: 'Ready to be delivered same day',
+      wardStatus: 'LIVE WARD', workType: 'Installation, Doors',
+      bmTrada: 'Tom Bales (3051)', siteOperatives: 2, timeEst: '30 DAYS',
+      numDoors: 30, siteAddress: 'Dewsbury and District Hospital Halifax Rd, Dewsbury WF13 4HS',
+      siteContact: 'TBC', wardRoom: 'Ward 19',
+      jobSpec: 'Please attend Ward 19 to check all doors, ensuring LEDs function and alarms connected.',
+      faultType: 'N/A', faultLocation: '', allComplete: 'RVN, Unidentified Issue Reported',
+      acInvoice: 'NO', acRevisit: 'NO', partUsed: 'NO', vanStock: 'NO', assignedTech: ''
     }
+  ];
 
-    function initAllDropdowns() {
-      // Filter dropdowns
-      populateSelect('filterJobStatus', statusOptions);
-      populateSelect('filterRegion', regionOptions);
-      populateSelect('filterContact', contactOptions);
-      populateSelect('filterUrgency', urgencyOptions);
-      populateSelect('filterAfterCare', afterCareOptions);
-      populateSelect('filterDNote', ['TO BE ACTIONED', 'ACTIONED', 'PENDING']);
-      populateSelect('filterDoorStatus', doorStatusOptions);
-      populateSelect('filterWardStatus', wardStatusOptions);
-      populateSelect('filterWorkType', workTypeOptions);
-      populateSelect('filterBMTrada', bmTradaOptions);
-      populateSelect('filterFaultType', faultTypeOptions);
-      populateSelect('filterComplete', completeOptions);
-      populateSelect('filterACInvoice', yesNoOptions);
-      populateSelect('filterACRevisit', yesNoOptions);
-      populateSelect('filterPartUsed', yesNoOptions);
-      populateSelect('filterVanStock', yesNoOptions);
-      // Form dropdowns
-      populateSelect('jobStatus', statusOptions);
-      populateSelect('regionArea', regionOptions);
-      populateSelect('jobUrgency', urgencyOptions);
-      populateSelect('afterCare', afterCareOptions);
-      populateSelect('doorStatus', doorStatusOptions);
-      populateSelect('wardStatus', wardStatusOptions);
-      populateSelect('allComplete', completeOptions);
-      populateSelect('acInvoice', yesNoOptions);
-      populateSelect('acRevisit', yesNoOptions);
-      populateSelect('partUsed', yesNoOptions);
-      populateSelect('vanStock', yesNoOptions);
-      populateSelect('assignedTech', technicianOptions);
-    }
+  const technicians = [
+    { id: "t1", name: "Alex Kent (Barnsley)", region: "North", status: "free" },
+    { id: "t2", name: "Andy Jones (Birmingham)", region: "Midlands", status: "free" },
+    { id: "t3", name: "Lee Blakeston (North East)", region: "North East", status: "allocated" },
+    { id: "t4", name: "Michael Nicholson (NEW)", region: "North", status: "allocated" },
+    { id: "t5", name: "Tom Clark (Harrogate)", region: "Yorkshire", status: "free" },
+    { id: "t6", name: "Matty Collinson (Harrogate)", region: "Yorkshire", status: "allocated" },
+    { id: "t7", name: "Joey Carr (Harrogate)", region: "Yorkshire", status: "allocated" },
+    { id: "t8", name: "George Hollis", region: "Mobile", status: "free" },
+    { id: "t9", name: "Alex Kitsios", region: "London", status: "free" },
+    { id: "t10", name: "Daniel Antosz", region: "South", status: "allocated" },
+    { id: "t11", name: "Steve Ficken", region: "Midlands", status: "allocated" },
+    { id: "t12", name: "Vladimir Niculescu", region: "London", status: "allocated" },
+    { id: "t13", name: "Mitch Traynor", region: "North West", status: "free" },
+    { id: "t14", name: "Marc Hancock (STOKE)", region: "Midlands", status: "allocated" },
+    { id: "t15", name: "Lee Goodman (Rugeley)", region: "Midlands", status: "free" },
+    { id: "t16", name: "Matt Newman (Birmingham)", region: "Midlands", status: "allocated" },
+    { id: "t17", name: "Ben Watkins", region: "South West", status: "free" },
+    { id: "t18", name: "Gintautas (GEE) Taroz", region: "East", status: "allocated" }
+  ];
 
-    // Filtering logic
-    function getActiveFilters() {
-      return {
-        keyword: (document.getElementById('filterKeyword')?.value || '').toLowerCase().trim(),
-        jobStatus: document.getElementById('filterJobStatus')?.value || '',
-        region: document.getElementById('filterRegion')?.value || '',
-        contact: document.getElementById('filterContact')?.value || '',
-        urgency: document.getElementById('filterUrgency')?.value || '',
-        afterCare: document.getElementById('filterAfterCare')?.value || '',
-        dNote: document.getElementById('filterDNote')?.value || '',
-        doorStatus: document.getElementById('filterDoorStatus')?.value || '',
-        wardStatus: document.getElementById('filterWardStatus')?.value || '',
-        workType: document.getElementById('filterWorkType')?.value || '',
-        bmTrada: document.getElementById('filterBMTrada')?.value || '',
-        operatives: document.getElementById('filterOperatives')?.value || '',
-        faultType: document.getElementById('filterFaultType')?.value || '',
-        faultLocation: (document.getElementById('filterFaultLocation')?.value || '').toLowerCase().trim(),
-        complete: document.getElementById('filterComplete')?.value || '',
-        acInvoice: document.getElementById('filterACInvoice')?.value || '',
-        acRevisit: document.getElementById('filterACRevisit')?.value || '',
-        partUsed: document.getElementById('filterPartUsed')?.value || '',
-        vanStock: document.getElementById('filterVanStock')?.value || ''
-      };
-    }
+  const holidays = ["2026-05-04", "2026-05-25", "2026-08-31"];
 
-    function filterJobs(jobArray) {
-      const f = getActiveFilters();
-      return jobArray.filter(job => {
-        if (f.keyword && !JSON.stringify(job).toLowerCase().includes(f.keyword)) return false;
-        if (f.jobStatus && job.jobStatus !== f.jobStatus) return false;
-        if (f.region && job.regionArea !== f.region) return false;
-        if (f.contact && !job.projectContact?.includes(f.contact)) return false;
-        if (f.urgency && job.jobUrgency !== f.urgency) return false;
-        if (f.afterCare && job.afterCare !== f.afterCare) return false;
-        if (f.dNote && job.dNote !== f.dNote) return false;
-        if (f.doorStatus && job.doorStatus !== f.doorStatus) return false;
-        if (f.wardStatus && job.wardStatus !== f.wardStatus) return false;
-        if (f.workType && job.workType !== f.workType) return false;
-        if (f.bmTrada && job.bmTrada !== f.bmTrada) return false;
-        if (f.operatives && job.siteOperatives != parseInt(f.operatives)) return false;
-        if (f.faultType && job.faultType !== f.faultType) return false;
-        if (f.faultLocation && !(job.faultLocation || '').toLowerCase().includes(f.faultLocation)) return false;
-        if (f.complete && job.allComplete !== f.complete) return false;
-        if (f.acInvoice && job.acInvoice !== f.acInvoice) return false;
-        if (f.acRevisit && job.acRevisit !== f.acRevisit) return false;
-        if (f.partUsed && job.partUsed !== f.partUsed) return false;
-        if (f.vanStock && job.vanStock !== f.vanStock) return false;
-        return true;
-      });
-    }
-
-    function renderJobList() {
-      const container = document.getElementById('jobListContainer');
-      const filtered = filterJobs(jobs);
-      document.getElementById('jobCount').textContent = filtered.length;
-      container.innerHTML = filtered.map(job => {
-        const selectedClass = job.id === currentJobId ? 'selected' : '';
-        return `<div class="job-card ${selectedClass}" data-id="${job.id}">
-                  <div class="job-title">🔹 ${job.refNumber || 'New Job'} - ${job.wardRoom || 'No Ward'}</div>
-                  <div class="job-meta">
-                    <span class="meta-tag">${job.jobStatus?.substring(0,20) || 'Status'}</span>
-                    <span class="meta-tag">${job.regionArea?.substring(0,15) || 'Region'}</span>
-                    <span class="meta-tag">${job.jobUrgency || 'Urgency'}</span>
-                  </div>
-                </div>`;
-      }).join('');
-
-      document.querySelectorAll('.job-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-          const id = e.currentTarget.dataset.id;
-          selectJob(id);
-        });
-      });
-    }
-
-    function selectJob(id) {
-      currentJobId = id;
-      const job = jobs.find(j => j.id === id);
-      if (!job) return;
-      document.getElementById('emptyState').style.display = 'none';
-      document.getElementById('jobForm').style.display = 'block';
-      // Populate form
-      document.getElementById('refNumber').value = job.refNumber || '';
-      document.getElementById('projectNumber').value = job.projectNumber || '';
-      document.getElementById('jobStatus').value = job.jobStatus || '';
-      document.getElementById('regionArea').value = job.regionArea || '';
-      document.getElementById('projectContact').value = job.projectContact || '';
-      document.getElementById('jobUrgency').value = job.jobUrgency || '';
-      document.getElementById('afterCare').value = job.afterCare || '';
-      document.getElementById('dNote').value = job.dNote || '';
-      document.getElementById('doorStatus').value = job.doorStatus || '';
-      document.getElementById('wardStatus').value = job.wardStatus || '';
-      document.getElementById('workType').value = job.workType || '';
-      document.getElementById('bmTrada').value = job.bmTrada || '';
-      document.getElementById('siteOperatives').value = job.siteOperatives || '';
-      document.getElementById('timeEst').value = job.timeEst || '';
-      document.getElementById('numDoors').value = job.numDoors || '';
-      document.getElementById('siteAddress').value = job.siteAddress || '';
-      document.getElementById('siteContact').value = job.siteContact || '';
-      document.getElementById('wardRoom').value = job.wardRoom || '';
-      document.getElementById('jobSpec').value = job.jobSpec || '';
-      document.getElementById('faultType').value = job.faultType || '';
-      document.getElementById('faultLocation').value = job.faultLocation || '';
-      document.getElementById('allComplete').value = job.allComplete || '';
-      document.getElementById('acInvoice').value = job.acInvoice || '';
-      document.getElementById('acRevisit').value = job.acRevisit || '';
-      document.getElementById('partUsed').value = job.partUsed || '';
-      document.getElementById('vanStock').value = job.vanStock || '';
-      document.getElementById('assignedTech').value = job.assignedTech || '';
-      renderJobList();
-    }
-
-    function saveCurrentJob() {
-      if (!currentJobId) return;
-      const job = jobs.find(j => j.id === currentJobId);
-      if (!job) return;
-      job.refNumber = document.getElementById('refNumber').value;
-      job.projectNumber = document.getElementById('projectNumber').value;
-      job.jobStatus = document.getElementById('jobStatus').value;
-      job.regionArea = document.getElementById('regionArea').value;
-      job.projectContact = document.getElementById('projectContact').value;
-      job.jobUrgency = document.getElementById('jobUrgency').value;
-      job.afterCare = document.getElementById('afterCare').value;
-      job.dNote = document.getElementById('dNote').value;
-      job.doorStatus = document.getElementById('doorStatus').value;
-      job.wardStatus = document.getElementById('wardStatus').value;
-      job.workType = document.getElementById('workType').value;
-      job.bmTrada = document.getElementById('bmTrada').value;
-      job.siteOperatives = parseInt(document.getElementById('siteOperatives').value) || 0;
-      job.timeEst = document.getElementById('timeEst').value;
-      job.numDoors = parseInt(document.getElementById('numDoors').value) || 0;
-      job.siteAddress = document.getElementById('siteAddress').value;
-      job.siteContact = document.getElementById('siteContact').value;
-      job.wardRoom = document.getElementById('wardRoom').value;
-      job.jobSpec = document.getElementById('jobSpec').value;
-      job.faultType = document.getElementById('faultType').value;
-      job.faultLocation = document.getElementById('faultLocation').value;
-      job.allComplete = document.getElementById('allComplete').value;
-      job.acInvoice = document.getElementById('acInvoice').value;
-      job.acRevisit = document.getElementById('acRevisit').value;
-      job.partUsed = document.getElementById('partUsed').value;
-      job.vanStock = document.getElementById('vanStock').value;
-      job.assignedTech = document.getElementById('assignedTech').value;
-      renderJobList();
-      alert('✅ Job saved successfully.');
-    }
-
-    function addNewJob() {
-      const newId = 'j' + Date.now();
-      jobs.push({
-        id: newId,
-        refNumber: '', projectNumber: '', jobStatus: '', regionArea: '',
-        projectContact: '', jobUrgency: '', afterCare: 'NO', dNote: '',
-        doorStatus: '', wardStatus: '', workType: '', bmTrada: '',
-        siteOperatives: 1, timeEst: '', numDoors: 0, siteAddress: '',
-        siteContact: '', wardRoom: '', jobSpec: '', faultType: 'N/A',
-        faultLocation: '', allComplete: '', acInvoice: 'NO', acRevisit: 'NO',
-        partUsed: 'NO', vanStock: 'NO', assignedTech: ''
-      });
-      currentJobId = newId;
-      renderJobList();
-      selectJob(newId);
-    }
-
-    // View toggle (Jobs / Calendar)
-    document.querySelectorAll('.view-tab').forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
-        e.target.classList.add('active');
-        const view = e.target.dataset.view;
-        const filterPanel = document.getElementById('filterPanel');
-        const jobListPanel = document.getElementById('jobListPanel');
-        const detailPanel = document.getElementById('detailPanel');
-        const calendarView = document.getElementById('calendarView');
-        if (view === 'calendar') {
-          filterPanel.style.display = 'none';
-          jobListPanel.style.display = 'none';
-          detailPanel.style.display = 'none';
-          calendarView.style.display = 'flex';
+  // Generate schedule data
+  function generateSchedule() {
+    const schedule = {};
+    const today = new Date();
+    technicians.forEach(tech => {
+      schedule[tech.id] = {};
+      for (let i = 0; i < 5; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        if (holidays.includes(dateStr)) {
+          schedule[tech.id][dateStr] = { type: "holiday", label: "Public Holiday" };
+        } else if (tech.status === "allocated" && Math.random() > 0.3) {
+          schedule[tech.id][dateStr] = { type: "job", label: "K-Care PPM / Snag" };
         } else {
-          filterPanel.style.display = 'flex';
-          jobListPanel.style.display = 'flex';
-          detailPanel.style.display = 'flex';
-          calendarView.style.display = 'none';
+          schedule[tech.id][dateStr] = { type: "free", label: "Available" };
         }
-      });
+      }
     });
+    return schedule;
+  }
 
-    // Event listeners
-    document.getElementById('applyFiltersBtn').addEventListener('click', () => {
-      currentJobId = null;
-      document.getElementById('emptyState').style.display = 'block';
-      document.getElementById('jobForm').style.display = 'none';
-      renderJobList();
-    });
-    document.getElementById('resetFiltersBtn').addEventListener('click', () => {
-      document.querySelectorAll('#filterPanel select, #filterPanel input').forEach(el => el.value = '');
-      currentJobId = null;
-      document.getElementById('emptyState').style.display = 'block';
-      document.getElementById('jobForm').style.display = 'none';
-      renderJobList();
-    });
-    document.getElementById('saveJobBtn').addEventListener('click', saveCurrentJob);
-    document.getElementById('cancelEditBtn').addEventListener('click', () => {
-      if (currentJobId) selectJob(currentJobId);
-    });
-    document.getElementById('addJobBtn').addEventListener('click', addNewJob);
+  const scheduleData = generateSchedule();
+  let selectedCalResourceId = null;
+  let selectedCalResourceType = null;
 
-    // Initialize
-    initAllDropdowns();
+  // Options
+  const statusOptions = ['Book Installer and email PM+RPC','Production / Parts due date tbc','Completed','On Hold','In Progress'];
+  const regionOptions = ['R3 (Tom, Carlo, AC) North England, Highlands, ROI, NI)','R2 Midlands','R1 South East','London','South West'];
+  const contactOptions = ['R3 Carlo','RPC Mel','Tom Bales','Alex Kent','Andy Jones'];
+  const urgencyOptions = ['LOW (4+ weeks)','MEDIUM (2-3 weeks)','HIGH (within 1 week)','CRITICAL'];
+  const afterCareOptions = ['YES','NO'];
+  const doorStatusOptions = ['Ready to be delivered same day','In Production','Delivered','On Site','Pending'];
+  const wardStatusOptions = ['LIVE WARD','VACANT','RESTRICTED','ISOLATED'];
+  const workTypeOptions = ['Installation, Doors','Maintenance','Snagging','Repair','Inspection'];
+  const bmTradaOptions = ['Tom Bales (3051)','Other'];
+  const completeOptions = ['YES','NO','RVN, Unidentified Issue Reported','Partial'];
+  const yesNoOptions = ['YES','NO'];
+  const faultTypeOptions = ['N/A','Mechanical','Electrical','Alignment','Lock','Closer'];
+  const technicianOptions = technicians.map(t => t.name);
+
+  function populateSelect(selectId, options) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    select.innerHTML = '<option value="">All</option>' + options.map(o => `<option value="${o}">${o}</option>`).join('');
+  }
+
+  function initDropdowns() {
+    populateSelect('filterJobStatus', statusOptions);
+    populateSelect('filterRegion', regionOptions);
+    populateSelect('filterContact', contactOptions);
+    populateSelect('filterUrgency', urgencyOptions);
+    populateSelect('filterAfterCare', afterCareOptions);
+    populateSelect('filterDNote', ['TO BE ACTIONED','ACTIONED','PENDING']);
+    populateSelect('filterDoorStatus', doorStatusOptions);
+    populateSelect('filterWardStatus', wardStatusOptions);
+    populateSelect('filterWorkType', workTypeOptions);
+    populateSelect('filterBMTrada', bmTradaOptions);
+    populateSelect('filterFaultType', faultTypeOptions);
+    populateSelect('filterComplete', completeOptions);
+    populateSelect('filterACInvoice', yesNoOptions);
+    populateSelect('filterACRevisit', yesNoOptions);
+    populateSelect('filterPartUsed', yesNoOptions);
+    populateSelect('filterVanStock', yesNoOptions);
+    populateSelect('jobStatus', statusOptions);
+    populateSelect('regionArea', regionOptions);
+    populateSelect('jobUrgency', urgencyOptions);
+    populateSelect('afterCare', afterCareOptions);
+    populateSelect('doorStatus', doorStatusOptions);
+    populateSelect('wardStatus', wardStatusOptions);
+    populateSelect('allComplete', completeOptions);
+    populateSelect('acInvoice', yesNoOptions);
+    populateSelect('acRevisit', yesNoOptions);
+    populateSelect('partUsed', yesNoOptions);
+    populateSelect('vanStock', yesNoOptions);
+    populateSelect('assignedTech', technicianOptions);
+  }
+
+  // ========== JOB MANAGEMENT ==========
+  let currentJobId = null;
+
+  function getActiveFilters() {
+    return {
+      keyword: (document.getElementById('filterKeyword')?.value || '').toLowerCase().trim(),
+      jobStatus: document.getElementById('filterJobStatus')?.value || '',
+      region: document.getElementById('filterRegion')?.value || '',
+      contact: document.getElementById('filterContact')?.value || '',
+      urgency: document.getElementById('filterUrgency')?.value || '',
+      afterCare: document.getElementById('filterAfterCare')?.value || '',
+      dNote: document.getElementById('filterDNote')?.value || '',
+      doorStatus: document.getElementById('filterDoorStatus')?.value || '',
+      wardStatus: document.getElementById('filterWardStatus')?.value || '',
+      workType: document.getElementById('filterWorkType')?.value || '',
+      bmTrada: document.getElementById('filterBMTrada')?.value || '',
+      operatives: document.getElementById('filterOperatives')?.value || '',
+      faultType: document.getElementById('filterFaultType')?.value || '',
+      faultLocation: (document.getElementById('filterFaultLocation')?.value || '').toLowerCase().trim(),
+      complete: document.getElementById('filterComplete')?.value || '',
+      acInvoice: document.getElementById('filterACInvoice')?.value || '',
+      acRevisit: document.getElementById('filterACRevisit')?.value || '',
+      partUsed: document.getElementById('filterPartUsed')?.value || '',
+      vanStock: document.getElementById('filterVanStock')?.value || ''
+    };
+  }
+
+  function filterJobs(jobArray) {
+    const f = getActiveFilters();
+    return jobArray.filter(job => {
+      if (f.keyword && !JSON.stringify(job).toLowerCase().includes(f.keyword)) return false;
+      if (f.jobStatus && job.jobStatus !== f.jobStatus) return false;
+      if (f.region && job.regionArea !== f.region) return false;
+      if (f.contact && !job.projectContact?.includes(f.contact)) return false;
+      if (f.urgency && job.jobUrgency !== f.urgency) return false;
+      if (f.afterCare && job.afterCare !== f.afterCare) return false;
+      if (f.dNote && job.dNote !== f.dNote) return false;
+      if (f.doorStatus && job.doorStatus !== f.doorStatus) return false;
+      if (f.wardStatus && job.wardStatus !== f.wardStatus) return false;
+      if (f.workType && job.workType !== f.workType) return false;
+      if (f.bmTrada && job.bmTrada !== f.bmTrada) return false;
+      if (f.operatives && job.siteOperatives != parseInt(f.operatives)) return false;
+      if (f.faultType && job.faultType !== f.faultType) return false;
+      if (f.faultLocation && !(job.faultLocation || '').toLowerCase().includes(f.faultLocation)) return false;
+      if (f.complete && job.allComplete !== f.complete) return false;
+      if (f.acInvoice && job.acInvoice !== f.acInvoice) return false;
+      if (f.acRevisit && job.acRevisit !== f.acRevisit) return false;
+      if (f.partUsed && job.partUsed !== f.partUsed) return false;
+      if (f.vanStock && job.vanStock !== f.vanStock) return false;
+      return true;
+    });
+  }
+
+  function renderJobList() {
+    const container = document.getElementById('jobListContainer');
+    const filtered = filterJobs(jobs);
+    document.getElementById('jobCount').textContent = filtered.length;
+    container.innerHTML = filtered.map(job => {
+      const sel = job.id === currentJobId ? 'selected' : '';
+      return `<div class="job-card ${sel}" data-id="${job.id}">
+                <div class="job-title">🔹 ${job.refNumber || 'New'} - ${job.wardRoom || 'No Ward'}</div>
+                <div class="job-meta">
+                  <span class="meta-tag">${job.jobStatus?.substring(0,20) || 'Status'}</span>
+                  <span class="meta-tag">${job.jobUrgency || 'Urgency'}</span>
+                </div>
+              </div>`;
+    }).join('');
+    document.querySelectorAll('.job-card').forEach(card => {
+      card.addEventListener('click', e => selectJob(e.currentTarget.dataset.id));
+    });
+  }
+
+  function selectJob(id) {
+    currentJobId = id;
+    const job = jobs.find(j => j.id === id);
+    if (!job) return;
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('jobForm').style.display = 'block';
+    const fields = ['refNumber','projectNumber','jobStatus','regionArea','projectContact','jobUrgency','afterCare','dNote','doorStatus','wardStatus','workType','bmTrada','siteOperatives','timeEst','numDoors','siteAddress','siteContact','wardRoom','jobSpec','faultType','faultLocation','allComplete','acInvoice','acRevisit','partUsed','vanStock','assignedTech'];
+    fields.forEach(f => {
+      const el = document.getElementById(f);
+      if (el) el.value = job[f] !== undefined ? job[f] : '';
+    });
     renderJobList();
-    if (jobs.length > 0) selectJob(jobs[0].id);
-  })();
-</script>
-</body>
-</html>
+  }
+
+  function saveCurrentJob() {
+    if (!currentJobId) return;
+    const job = jobs.find(j => j.id === currentJobId);
+    if (!job) return;
+    const fields = ['refNumber','projectNumber','jobStatus','regionArea','projectContact','jobUrgency','afterCare','dNote','doorStatus','wardStatus','workType','bmTrada','siteOperatives','timeEst','numDoors','siteAddress','siteContact','wardRoom','jobSpec','faultType','faultLocation','allComplete','acInvoice','acRevisit','partUsed','vanStock','assignedTech'];
+    fields.forEach(f => {
+      const el = document.getElementById(f);
+      if (el) job[f] = el.value;
+    });
+    job.siteOperatives = parseInt(job.siteOperatives) || 0;
+    job.numDoors
