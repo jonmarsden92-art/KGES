@@ -708,4 +708,193 @@
       if (el) job[f] = el.value;
     });
     job.siteOperatives = parseInt(job.siteOperatives) || 0;
-    job.numDoors
+    job.numDoors = parseInt(job.numDoors) || 0;
+    renderJobList();
+    alert('✅ Job saved.');
+  }
+
+  function addNewJob() {
+    const newId = 'j' + Date.now();
+    jobs.push({
+      id: newId, refNumber: '', projectNumber: '', jobStatus: '', regionArea: '',
+      projectContact: '', jobUrgency: '', afterCare: 'NO', dNote: '',
+      doorStatus: '', wardStatus: '', workType: '', bmTrada: '',
+      siteOperatives: 1, timeEst: '', numDoors: 0, siteAddress: '',
+      siteContact: '', wardRoom: '', jobSpec: '', faultType: 'N/A',
+      faultLocation: '', allComplete: '', acInvoice: 'NO', acRevisit: 'NO',
+      partUsed: 'NO', vanStock: 'NO', assignedTech: ''
+    });
+    currentJobId = newId;
+    renderJobList();
+    selectJob(newId);
+  }
+
+  // ========== RESOURCE CALENDAR ==========
+  function renderTechnicians() {
+    const el = document.getElementById('technicianList');
+    el.innerHTML = technicians.map(tech => {
+      const cls = tech.status === 'allocated' ? 'status-allocated' : 'status-free';
+      return `<div class="tech-item" data-id="${tech.id}" data-type="technician">
+                <span>${tech.name}</span>
+                <span class="badge ${cls}">${tech.status}</span>
+              </div>`;
+    }).join('');
+  }
+
+  function renderCalendarJobs() {
+    const el = document.getElementById('calendarJobList');
+    el.innerHTML = jobs.map(job => {
+      return `<div class="job-item" data-id="${job.id}" data-type="job">
+                <span>📌 ${job.refNumber || 'New'} - ${job.wardRoom || ''}</span>
+                <span class="badge">${job.jobStatus?.substring(0,12) || ''}</span>
+              </div>`;
+    }).join('');
+  }
+
+  function getWeekDays() {
+    const days = [];
+    const today = new Date();
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      days.push(d);
+    }
+    return days;
+  }
+
+  function renderDayTabs() {
+    const weekDays = getWeekDays();
+    const el = document.getElementById('dayTabs');
+    el.innerHTML = weekDays.map((day, idx) => {
+      const dateStr = day.toISOString().split('T')[0];
+      const display = day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      const active = idx === 0 ? 'active' : '';
+      return `<div class="day-tab ${active}" data-date="${dateStr}">${display}</div>`;
+    }).join('');
+  }
+
+  function renderScheduleForResource(resourceId, type) {
+    const content = document.getElementById('scheduleContent');
+    if (!resourceId || !type) {
+      content.innerHTML = '<p style="color:#5f6c7a; padding:1rem;">👆 Select a technician or job to see their week</p>';
+      return;
+    }
+    const weekDays = getWeekDays();
+    let html = '';
+    if (type === 'technician') {
+      const tech = technicians.find(t => t.id === resourceId);
+      if (!tech) return;
+      html += `<div style="font-weight:600; margin-bottom:0.5rem;">🔧 ${tech.name} · This week</div>`;
+      weekDays.forEach(day => {
+        const dateStr = day.toISOString().split('T')[0];
+        const entry = scheduleData[resourceId]?.[dateStr] || { type: 'free', label: 'Available' };
+        const bg = entry.type === 'holiday' ? 'holiday-row' : '';
+        html += `<div class="slot-card ${bg}">
+                  <div><strong>${day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}</strong><br><small>${entry.label}</small></div>
+                  <button data-date="${dateStr}" data-tech="${resourceId}">${entry.type==='free'?'➕ Assign':'🔄 Change'}</button>
+                </div>`;
+      });
+    } else if (type === 'job') {
+      const job = jobs.find(j => j.id === resourceId);
+      if (!job) return;
+      html += `<div style="font-weight:600; margin-bottom:0.5rem;">📋 ${job.refNumber || 'Job'} - ${job.wardRoom || ''}</div>`;
+      weekDays.forEach(day => {
+        const dateStr = day.toISOString().split('T')[0];
+        html += `<div class="slot-card">
+                  <div><strong>${day.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric' })}</strong></div>
+                  <button data-date="${dateStr}" data-job="${resourceId}">🔧 Assign Tech</button>
+                </div>`;
+      });
+    }
+    content.innerHTML = html;
+    content.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const date = e.target.dataset.date;
+        if (e.target.dataset.tech) {
+          const techId = e.target.dataset.tech;
+          const current = scheduleData[techId]?.[date];
+          if (current?.type === 'holiday') { alert('Public holiday'); return; }
+          scheduleData[techId] = scheduleData[techId] || {};
+          scheduleData[techId][date] = current?.type === 'free' ? { type: 'job', label: 'Assigned task' } : { type: 'free', label: 'Available' };
+          renderScheduleForResource(techId, 'technician');
+          renderTechnicians();
+        } else if (e.target.dataset.job) {
+          const freeTech = technicians.find(t => {
+            const entry = scheduleData[t.id]?.[date];
+            return !entry || entry.type === 'free';
+          });
+          if (!freeTech) { alert('No available technician'); return; }
+          scheduleData[freeTech.id] = scheduleData[freeTech.id] || {};
+          scheduleData[freeTech.id][date] = { type: 'job', label: 'Assigned from job' };
+          renderScheduleForResource(resourceId, 'job');
+          renderTechnicians();
+          alert(`Assigned to ${freeTech.name}`);
+        }
+      });
+    });
+  }
+
+  function setupCalendarSelection() {
+    document.getElementById('technicianList').addEventListener('click', e => {
+      const item = e.target.closest('.tech-item');
+      if (!item) return;
+      selectedCalResourceId = item.dataset.id;
+      selectedCalResourceType = 'technician';
+      renderScheduleForResource(selectedCalResourceId, 'technician');
+    });
+    document.getElementById('calendarJobList').addEventListener('click', e => {
+      const item = e.target.closest('.job-item');
+      if (!item) return;
+      selectedCalResourceId = item.dataset.id;
+      selectedCalResourceType = 'job';
+      renderScheduleForResource(selectedCalResourceId, 'job');
+    });
+    document.getElementById('dayTabs').addEventListener('click', e => {
+      const tab = e.target.closest('.day-tab');
+      if (!tab) return;
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  }
+
+  function initCalendar() {
+    renderTechnicians();
+    renderCalendarJobs();
+    renderDayTabs();
+    setupCalendarSelection();
+    if (technicians.length > 0) {
+      selectedCalResourceId = technicians[0].id;
+      selectedCalResourceType = 'technician';
+      renderScheduleForResource(selectedCalResourceId, 'technician');
+    }
+  }
+
+  // ========== VIEW TOGGLE ==========
+  document.querySelectorAll('.view-tab').forEach(tab => {
+    tab.addEventListener('click', e => {
+      document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+      e.target.classList.add('active');
+      const view = e.target.dataset.view;
+      document.getElementById('filterPanel').style.display = view === 'calendar' ? 'none' : 'flex';
+      document.getElementById('jobListPanel').style.display = view === 'calendar' ? 'none' : 'flex';
+      document.getElementById('detailPanel').style.display = view === 'calendar' ? 'none' : 'flex';
+      document.getElementById('calendarView').style.display = view === 'calendar' ? 'flex' : 'none';
+    });
+  });
+
+  // ========== EVENT LISTENERS ==========
+  document.getElementById('applyFiltersBtn').addEventListener('click', () => { currentJobId = null; document.getElementById('emptyState').style.display = 'block'; document.getElementById('jobForm').style.display = 'none'; renderJobList(); });
+  document.getElementById('resetFiltersBtn').addEventListener('click', () => { document.querySelectorAll('#filterPanel select, #filterPanel input').forEach(el => el.value = ''); currentJobId = null; document.getElementById('emptyState').style.display = 'block'; document.getElementById('jobForm').style.display = 'none'; renderJobList(); });
+  document.getElementById('saveJobBtn').addEventListener('click', saveCurrentJob);
+  document.getElementById('cancelEditBtn').addEventListener('click', () => { if (currentJobId) selectJob(currentJobId); });
+  document.getElementById('addJobBtn').addEventListener('click', addNewJob);
+
+  // ========== INIT ==========
+  initDropdowns();
+  renderJobList();
+  if (jobs.length > 0) selectJob(jobs[0].id);
+  initCalendar();
+})();
+</script>
+</body>
+</html>
